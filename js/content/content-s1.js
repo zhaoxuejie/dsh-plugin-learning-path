@@ -330,7 +330,7 @@ whale-girl  github:vlln/whale-girl#main</code></pre></div>
 
       <div class="practice">
         <div class="practice-title"><i class="fa-solid fa-pen"></i> 小练习（5 分钟）</div>
-        <p>运行 <code>dsh --profile web --dump-config | Select-String whale</code>，把输出截图存下来。之后第 3.4 课装自己的插件时，你会用同一个命令验证「它进树了」。</p>
+        <p>运行 <code>dsh --profile web --dump-config | Select-String whale</code>，把输出截图存下来。之后实战项目里装自己的插件时，你会用同一个命令验证「它进树了」。</p>
       </div>
 
       <div class="takeaway">

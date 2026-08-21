@@ -237,7 +237,7 @@ whale-girl:
   walk:
     enabled: true
   sleepAfterMs: 120000</code></pre>
-      <p>这段配置会被 whale-girl 的 Node 端读取（通过 settings 服务），并且<b>改完不用重启</b>——热更新（第 3.5 课会自己实现一次）。</p>
+      <p>这段配置会被 whale-girl 的 Node 端读取（通过 settings 服务），并且<b>改完不用重启</b>——热更新（error-logger 实战的「进阶配置」步骤会亲手实现一次）。</p>
 
       <div class="box warn">
         <div class="box-title"><i class="fa-solid fa-triangle-exclamation"></i> 两大新手陷阱</div>
@@ -246,7 +246,7 @@ whale-girl:
 
       <div class="practice">
         <div class="practice-title"><i class="fa-solid fa-pen"></i> 小练习（10 分钟）</div>
-        <p>手写一个 <code>error-logger.yaml</code>（给第 3.5 课的插件预演）：包含 <code>keepLast: 20</code> 和 <code>watchWindowMs: 300000</code> 两个字段，用缩进表达层级。写完后试着把冒号后空格去掉，观察报错——把坑踩一遍就不会再踩。</p>
+        <p>手写一个 <code>error-logger.yaml</code>（给实战项目的「进阶配置」步骤预演）：包含 <code>keepLast: 20</code> 和 <code>watchWindowMs: 300000</code> 两个字段，用缩进表达层级。写完后试着把冒号后空格去掉，观察报错——把坑踩一遍就不会再踩。</p>
       </div>
 
       <div class="takeaway">
@@ -339,7 +339,7 @@ export const config = Schema.object({
   enabled: Schema.boolean().default(true),
   size: Schema.number().min(64).max(160).default(110),
 })</code></pre>
-      <p>声明后，用户就可以在 <code>settings.yaml</code> 里写值，DSH 会校验类型、套默认值，再交给插件（第 3.5 课亲手实现一次）。</p>
+      <p>声明后，用户就可以在 <code>settings.yaml</code> 里写值，DSH 会校验类型、套默认值，再交给插件（error-logger 实战的「进阶配置」步骤亲手实现一次）。</p>
 
       <h3>④ 事件（Event）—— 全局广播</h3>
       <p>Harness 运行时不断发出事件，插件用 <code>ctx.on</code> 订阅。whale-girl 里真实的订阅：</p>
@@ -463,7 +463,7 @@ export function apply(ctx) {
   //    - webServer.register(...)              挂 HTTP 路由（/state /config /interact /events /assets）
   // 3. 返回清理函数（停用时保存状态、清定时器）
 }</code></pre>
-      <p>其中挂路由是最实用的一招（第 3.3 课你要亲手写）：</p>
+      <p>其中挂路由是最实用的一招（error-logger 实战里你会亲手写）：</p>
       <pre><code>webServer.register({
   kind: "exact",            // exact = 精确匹配路径；prefix = 前缀匹配
   path: "/state",
@@ -545,7 +545,7 @@ export function apply(ctx) {
       <p><b>① 安装</b>——支持三种地址写法：</p>
       <pre><code>dsh plugin --profile web add whale-girl          # npm 包名
 dsh plugin --profile web add github:vlln/whale-girl#main   # GitHub 仓库
-dsh plugin --profile web add file:../my-plugin   # 本地目录（阶段三用这个）</code></pre>
+dsh plugin --profile web add file:../my-plugin   # 本地目录（实战项目用这个）</code></pre>
       <p><b>② 重启</b>——旧实例关不干净会导致端口占用（见排错表）。Windows 下确认端口占用者：</p>
       <pre><code>netstat -ano | findstr 3080</code></pre>
       <div class="expected"><pre><code>TCP    127.0.0.1:3080    0.0.0.0:0    LISTENING    12616

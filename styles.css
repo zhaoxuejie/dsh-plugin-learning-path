@@ -1043,6 +1043,123 @@ mark.hl {
 .quiz-explain.bad { background: rgba(255, 122, 145, 0.1); color: #c23a5e; }
 .quiz-explain i { margin-top: 3px; }
 
+/* ---------- 实战项目：侧栏分组 ---------- */
+.nav-sub-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+  padding: 8px 10px 4px;
+}
+.nav-sub-label i { color: var(--acc, #6b9dfc); }
+.nav-project .nav-lesson-no { font-size: 13px; color: var(--acc, #6b9dfc); }
+.nav-lesson-steps {
+  flex: none;
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.nav-project.done .nav-lesson-steps { color: #57c98b; font-weight: 700; }
+
+/* ---------- 实战项目：步骤条 ---------- */
+.step-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.step-bar-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-right: 4px;
+}
+.step-bar-label i { color: var(--acc, #6b9dfc); }
+
+.step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1.5px solid rgba(120, 110, 180, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.step-chip:hover { background: rgba(255, 255, 255, 0.85); transform: translateY(-1px); }
+.step-chip:active { transform: scale(0.96); }
+.step-chip:focus-visible { outline: 3px solid rgba(123, 140, 255, 0.6); outline-offset: 2px; }
+.step-no {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(120, 110, 180, 0.15);
+  color: var(--ink-soft);
+}
+.step-chip.active {
+  background: var(--acc-soft, rgba(123, 140, 255, 0.14));
+  border-color: var(--acc, #6b9dfc);
+  color: var(--ink);
+}
+.step-chip.active .step-no { background: var(--acc, #6b9dfc); color: #fff; }
+.step-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(120, 110, 180, 0.2);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  color: transparent;
+}
+.step-chip.done .step-check { background: #57c98b; border-color: #57c98b; color: #fff; }
+
+/* 项目完成横幅 */
+.project-done-banner {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-top: 2px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(120deg, rgba(87, 201, 139, 0.16), rgba(87, 201, 139, 0.06));
+  border: 1px solid rgba(87, 201, 139, 0.4);
+  color: #2f9e63;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+/* 首页项目行 */
+.home-project .home-course-no { font-size: 16px; }
+.home-project .home-course-name b { font-size: 15.5px; }
+.home-project-desc {
+  display: block;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
 /* ---------- 底部导航 ---------- */
 .course-nav {
   display: flex;
@@ -1286,6 +1403,18 @@ mark.hl {
 
   /* 文件折叠框 */
   .file-box summary { font-size: 14px; padding: 12px 14px; }
+
+  /* 实战项目：步骤条横向滑动 */
+  .step-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .step-bar::-webkit-scrollbar { display: none; }
+  .step-bar-label { display: none; }
+  .step-chip { flex: none; white-space: nowrap; }
+  .project-done-banner { flex: none; white-space: normal; }
 }
 
 /* 尊重减少动态效果偏好 */

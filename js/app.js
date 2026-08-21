@@ -1,6 +1,6 @@
 /* ============================================================
    DeepSeek Harness 插件开发 · 学习教程
-   app.js — 目录 / 总览首页 / 术语表 / 全文搜索 / 测验 / 进度
+   app.js — 目录 / 总览首页 / 术语表 / 实战项目 / 全文搜索 / 测验 / 进度
    ============================================================ */
 (() => {
   "use strict";
@@ -12,20 +12,27 @@
   const STAGES = [
     { id: "s1", label: "阶段一 · 认识基础", icon: "fa-compass", desc: "用生活比喻搞懂核心概念" },
     { id: "s2", label: "阶段二 · 核心入门", icon: "fa-puzzle-piece", desc: "JS/YAML/Cordis + 解剖真实插件" },
-    { id: "s3", label: "阶段三 · 实战演练", icon: "fa-hammer", desc: "从零写出「错误记录器」并装进 Harness" },
+    { id: "s3", label: "阶段三 · 实战演练", icon: "fa-hammer", desc: "方法论总览 + 不断扩充的实战项目库" },
     { id: "s4", label: "阶段四 · 进阶探索", icon: "fa-rocket", desc: "工具 / 子代理 / MCP / 源码贡献" },
   ];
 
-  /* ---------- 汇总全部课程 ---------- */
-  const ALL = [
+  /* ---------- 数据汇总 ---------- */
+  const COURSES = [
     ...(window.COURSE_S1 || []),
     ...(window.COURSE_S2 || []),
     ...(window.COURSE_S3 || []),
     ...(window.COURSE_S4 || []),
   ];
-  const TOTAL = ALL.length;
-  const BY_ID = new Map(ALL.map((c) => [c.id, c]));
+  const COURSE_BY_ID = new Map(COURSES.map((c) => [c.id, c]));
+
+  const PROJECTS = window.PROJECTS || [];
+  const PROJECT_BY_ID = new Map(PROJECTS.map((p) => [p.id, p]));
+
   const GLOSSARY = window.GLOSSARY || [];
+
+  // 学习单元总数 = 课程数 + 所有实战项目步骤数
+  const TOTAL_UNITS =
+    COURSES.length + PROJECTS.reduce((n, p) => n + p.steps.length, 0);
 
   /* ---------- 工具函数 ---------- */
   function esc(s) {
@@ -37,6 +44,12 @@
   }
   function stripTags(s) {
     return String(s).replace(/<[^>]*>/g, " ");
+  }
+  const stepKey = (pid, sid) => "p:" + pid + ":" + sid;
+  function projectDoneSteps(pid) {
+    const p = PROJECT_BY_ID.get(pid);
+    if (!p) return 0;
+    return p.steps.filter((s) => done[stepKey(pid, s.id)]).length;
   }
 
   /* ---------- 进度状态 ---------- */
@@ -59,6 +72,14 @@
     } catch {
       /* 不可用时本次会话内有效 */
     }
+  }
+  function doneUnitsCount() {
+    let n = 0;
+    for (const c of COURSES) if (done[c.id]) n += 1;
+    for (const p of PROJECTS) {
+      for (const s of p.steps) if (done[stepKey(p.id, s.id)]) n += 1;
+    }
+    return n;
   }
 
   /* ---------- DOM ---------- */
@@ -97,8 +118,10 @@
     sidebar.appendChild(tools);
 
     for (const stage of STAGES) {
-      const courses = ALL.filter((c) => c.id.startsWith(stage.id));
-      if (courses.length === 0) continue;
+      const courses = COURSES.filter((c) => c.id.startsWith(stage.id));
+      const stageProjects = stage.id === "s3" ? PROJECTS : [];
+      if (courses.length === 0 && stageProjects.length === 0) continue;
+
       const stageEl = document.createElement("div");
       stageEl.className = "nav-stage";
       stageEl.dataset.stage = stage.id;
@@ -107,6 +130,7 @@
       title.innerHTML =
         '<i class="fa-solid ' + stage.icon + '"></i><span>' + stage.label + "</span>";
       stageEl.appendChild(title);
+
       for (const course of courses) {
         const btn = document.createElement("button");
         btn.type = "button";
@@ -115,10 +139,32 @@
         btn.title = course.no + " " + course.title;
         btn.innerHTML =
           '<span class="nav-lesson-no">' + course.no + "</span>" +
-          '<span class="nav-lesson-name">' + course.title + "</span>" +
+          '<span class="nav-lesson-name">' + esc(course.title) + "</span>" +
           '<span class="nav-lesson-check"><i class="fa-solid fa-check"></i></span>';
         stageEl.appendChild(btn);
       }
+
+      // 实战项目分组（阶段三专属）
+      for (const p of stageProjects) {
+        const label = document.createElement("div");
+        label.className = "nav-sub-label";
+        label.innerHTML = '<i class="fa-solid fa-box-archive"></i> 实战项目';
+        stageEl.appendChild(label);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-lesson nav-project";
+        btn.dataset.project = p.id;
+        btn.title = p.name + " · " + p.desc;
+        btn.innerHTML =
+          '<span class="nav-lesson-no"><i class="fa-solid ' + p.icon + '"></i></span>' +
+          '<span class="nav-lesson-name">' + esc(p.name) + "</span>" +
+          '<span class="nav-lesson-steps" data-steps-for="' + p.id + '">' +
+          projectDoneSteps(p.id) + "/" + p.steps.length + "</span>" +
+          '<span class="nav-lesson-check"><i class="fa-solid fa-check"></i></span>';
+        stageEl.appendChild(btn);
+      }
+
       sidebar.appendChild(stageEl);
     }
 
@@ -129,13 +175,20 @@
         return;
       }
       const btn = e.target.closest(".nav-lesson");
-      if (btn) location.hash = "#/" + btn.dataset.course;
+      if (!btn) return;
+      if (btn.dataset.project) {
+        location.hash = "#/practice/" + btn.dataset.project;
+      } else {
+        location.hash = "#/" + btn.dataset.course;
+      }
     });
   }
 
-  function updateSidebarActive(mode, id) {
+  function updateSidebarActive(mode, key) {
     sidebar.querySelectorAll(".nav-lesson").forEach((btn) => {
-      const active = mode === "course" && btn.dataset.course === id;
+      let active = false;
+      if (mode === "course" && btn.dataset.course === key) active = true;
+      if (mode === "project" && btn.dataset.project === key) active = true;
       btn.classList.toggle("active", active);
       if (active) btn.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
@@ -155,9 +208,15 @@
     } else if (hash === "#/glossary") {
       renderGlossary();
       updateSidebarActive("glossary", null);
+    } else if (hash.startsWith("#/practice/")) {
+      const parts = hash.replace(/^#\/practice\//, "").split("/");
+      const pid = parts[0];
+      const sid = parts[1] || null;
+      renderProject(pid, sid);
+      updateSidebarActive("project", pid);
     } else {
       const id = hash.replace(/^#\//, "");
-      const course = BY_ID.get(id) || ALL[0];
+      const course = COURSE_BY_ID.get(id) || COURSES[0];
       if (!course) return;
       renderCourse(course);
       updateSidebarActive("course", course.id);
@@ -170,32 +229,52 @@
      ============================================================ */
   function renderHome() {
     view.dataset.stage = "";
-    const doneCount = Object.values(done).filter(Boolean).length;
-    const pct = TOTAL ? Math.round((doneCount / TOTAL) * 100) : 0;
-    const next = ALL.find((c) => !done[c.id]) || ALL[0];
+    const doneCount = doneUnitsCount();
+    const pct = TOTAL_UNITS ? Math.round((doneCount / TOTAL_UNITS) * 100) : 0;
+    const next = COURSES.find((c) => !done[c.id]) || COURSES[0];
 
     const stageSections = STAGES.map((stage) => {
-      const courses = ALL.filter((c) => c.id.startsWith(stage.id));
-      const stageDone = courses.filter((c) => done[c.id]).length;
+      const courses = COURSES.filter((c) => c.id.startsWith(stage.id));
+      const stageProjects = stage.id === "s3" ? PROJECTS : [];
+      const stageDone = courses.filter((c) => done[c.id]).length +
+        stageProjects.filter((p) => projectDoneSteps(p.id) === p.steps.length).length;
+      const stageUnits = courses.length + stageProjects.length;
+
+      const courseRows = courses
+        .map(
+          (c) =>
+            '<button class="home-course' + (done[c.id] ? " done" : "") + '" data-go="' + c.id + '">' +
+            '<span class="home-course-no">' + c.no + "</span>" +
+            '<span class="home-course-name">' + esc(c.title) + "</span>" +
+            '<span class="home-course-min">' + c.minutes.replace("约 ", "").replace(" 分钟", "") + "′</span>" +
+            '<span class="home-course-check"><i class="fa-solid fa-check"></i></span>' +
+            "</button>"
+        )
+        .join("");
+
+      const projectRows = stageProjects
+        .map((p) => {
+          const sd = projectDoneSteps(p.id);
+          const allDone = sd === p.steps.length;
+          return (
+            '<button class="home-course home-project' + (allDone ? " done" : "") + '" data-go="practice/' + p.id + '">' +
+            '<span class="home-course-no"><i class="fa-solid ' + p.icon + '"></i></span>' +
+            '<span class="home-course-name"><b>' + esc(p.name) + "</b><i class=\"home-project-desc\">" + esc(p.desc) + "</i></span>" +
+            '<span class="home-course-min">' + sd + "/" + p.steps.length + " 步</span>" +
+            '<span class="home-course-check"><i class="fa-solid fa-check"></i></span>' +
+            "</button>"
+          );
+        })
+        .join("");
+
       return (
         '<section class="home-stage glass" data-stage="' + stage.id + '">' +
         '<h3 class="home-stage-title"><i class="fa-solid ' + stage.icon + '"></i> ' +
         stage.label +
-        '<span class="home-stage-count">' + stageDone + "/" + courses.length + " 完成</span></h3>" +
+        '<span class="home-stage-count">' + stageDone + "/" + stageUnits + " 完成</span></h3>" +
         '<p class="home-stage-desc">' + stage.desc + "</p>" +
-        '<div class="home-course-list">' +
-        courses
-          .map(
-            (c) =>
-              '<button class="home-course' + (done[c.id] ? " done" : "") + '" data-go="' + c.id + '">' +
-              '<span class="home-course-no">' + c.no + "</span>" +
-              '<span class="home-course-name">' + esc(c.title) + "</span>" +
-              '<span class="home-course-min">' + c.minutes.replace("约 ", "").replace(" 分钟", "") + "′</span>" +
-              '<span class="home-course-check"><i class="fa-solid fa-check"></i></span>' +
-              "</button>"
-          )
-          .join("") +
-        "</div></section>"
+        '<div class="home-course-list">' + courseRows + projectRows + "</div>" +
+        "</section>"
       );
     }).join("");
 
@@ -203,12 +282,12 @@
       '<header class="course-head">' +
       '<span class="course-crumb"><i class="fa-solid fa-house"></i> 课程总览</span>' +
       "<h1>你好，同学 👋</h1>" +
-      '<div class="course-meta"><i class="fa-solid fa-route"></i> DeepSeek Harness 插件开发 · 4 阶段 · 18 节课 · 由浅入深</div>' +
+      '<div class="course-meta"><i class="fa-solid fa-route"></i> DeepSeek Harness 插件开发 · 4 阶段 · ' + COURSES.length + " 节课程 + " + PROJECTS.length + " 个实战项目</div>" +
       "</header>" +
       '<section class="home-hero glass">' +
       '<div class="home-hero-left">' +
       '<div class="home-hero-label"><i class="fa-solid fa-seedling"></i> 学习进度</div>' +
-      '<div class="home-hero-num">' + doneCount + '<span>/ ' + TOTAL + " 课</span></div>" +
+      '<div class="home-hero-num">' + doneCount + "<span>/ " + TOTAL_UNITS + " 个学习单元</span></div>" +
       '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
       "</div>" +
       '<button class="nav-btn continue-btn" data-go="' + next.id + '">' +
@@ -220,8 +299,9 @@
       "<h3><i class=\"fa-solid fa-lightbulb\"></i> 怎么用这份教程？</h3>" +
       "<ul>" +
       "<li><b>每课四步走：</b>看「本节目标」→ 敲一遍代码示例 → 做完「小练习」→ 答「随堂小测」再勾选学完。</li>" +
+      "<li><b>实战项目按步骤推进：</b>顶部步骤条逐步行军，每步结尾「本步完成」，全部步骤完成自动点亮项目。</li>" +
       "<li><b>报错是朋友：</b>排错表里全是前人踩过的坑，遇到问题先查表再查日志。</li>" +
-      "<li><b>术语忘了？</b>左侧「术语表」随时速查，每个词都能跳回出处课程。</li>" +
+      "<li><b>术语忘了？</b>左侧「术语表」随时速查，每个词都能跳回出处。</li>" +
       "<li><b>想找内容？</b>顶部搜索框支持全文搜索，如输入 EADDRINUSE 直接定位到相关课程并高亮。</li>" +
       "</ul>" +
       "</section>" +
@@ -237,7 +317,7 @@
       '<header class="course-head">' +
       '<span class="course-crumb"><i class="fa-solid fa-book"></i> 术语表</span>' +
       "<h1>黑话速查</h1>" +
-      '<div class="course-meta"><i class="fa-solid fa-lightbulb"></i> ' + GLOSSARY.length + " 个术语 · 一句话解释 · 点「去学习」跳回课程</div>" +
+      '<div class="course-meta"><i class="fa-solid fa-lightbulb"></i> ' + GLOSSARY.length + " 个术语 · 一句话解释 · 点「去学习」跳回出处</div>" +
       "</header>" +
       '<div class="glossary-search glass">' +
       '<i class="fa-solid fa-magnifying-glass"></i>' +
@@ -289,14 +369,12 @@
     const body = document.createElement("div");
     body.className = "course-body glass";
     body.innerHTML = course.html;
-
-    // 代码块加复制按钮（预期输出块除外）
     addCopyButtons(body);
 
     const nav = document.createElement("nav");
     nav.className = "course-nav";
 
-    const idx = ALL.findIndex((c) => c.id === course.id);
+    const idx = COURSES.findIndex((c) => c.id === course.id);
     const isDone = !!done[course.id];
 
     const prevBtn = document.createElement("button");
@@ -316,7 +394,7 @@
     nextBtn.type = "button";
     nextBtn.className = "nav-btn glass";
     nextBtn.innerHTML = '下一课 <i class="fa-solid fa-arrow-right"></i>';
-    nextBtn.disabled = idx >= TOTAL - 1;
+    nextBtn.disabled = idx >= COURSES.length - 1;
 
     nav.appendChild(prevBtn);
     nav.appendChild(doneBtn);
@@ -325,17 +403,16 @@
     view.appendChild(head);
     view.appendChild(body);
 
-    // 随堂小测
-    const quiz = buildQuiz(course);
+    const quiz = buildQuiz(course.quiz);
     if (quiz) view.appendChild(quiz);
 
     view.appendChild(nav);
 
     prevBtn.addEventListener("click", () => {
-      if (idx > 0) location.hash = "#/" + ALL[idx - 1].id;
+      if (idx > 0) location.hash = "#/" + COURSES[idx - 1].id;
     });
     nextBtn.addEventListener("click", () => {
-      if (idx < TOTAL - 1) location.hash = "#/" + ALL[idx + 1].id;
+      if (idx < COURSES.length - 1) location.hash = "#/" + COURSES[idx + 1].id;
     });
     doneBtn.addEventListener("click", () => {
       if (done[course.id]) delete done[course.id];
@@ -346,7 +423,123 @@
       updateSidebarActive("course", course.id);
     });
 
-    // 搜索高亮
+    if (activeQuery) highlightIn(body, activeQuery);
+  }
+
+  /* ============================================================
+     实战项目页
+     ============================================================ */
+  function renderProject(pid, sid) {
+    const project = PROJECT_BY_ID.get(pid);
+    if (!project) {
+      renderHome();
+      return;
+    }
+    let stepIdx = project.steps.findIndex((s) => s.id === sid);
+    if (stepIdx < 0) stepIdx = 0;
+    const step = project.steps[stepIdx];
+
+    view.dataset.stage = "s3";
+    view.innerHTML = "";
+
+    const head = document.createElement("header");
+    head.className = "course-head";
+    head.innerHTML =
+      '<span class="course-crumb"><i class="fa-solid fa-hammer"></i> 阶段三 · 实战项目</span>' +
+      '<h1><i class="fa-solid ' + project.icon + '" style="color:var(--acc)"></i> ' + esc(project.name) + "</h1>" +
+      '<div class="course-meta"><i class="fa-regular fa-clock"></i> ' + project.minutes +
+      ' · <i class="fa-solid fa-signal"></i> 难度：' + esc(project.difficulty) +
+      ' · <i class="fa-solid fa-list-check"></i> ' + project.steps.length + " 步 · " + esc(project.desc) + "</div>";
+
+    // 步骤条
+    const stepBar = document.createElement("div");
+    stepBar.className = "step-bar glass";
+    stepBar.innerHTML = '<span class="step-bar-label"><i class="fa-solid fa-list-check"></i> 步骤</span>';
+    project.steps.forEach((s, i) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className =
+        "step-chip" + (i === stepIdx ? " active" : "") + (done[stepKey(pid, s.id)] ? " done" : "");
+      chip.dataset.step = s.id;
+      chip.innerHTML =
+        '<span class="step-no">' + (i + 1) + "</span>" +
+        '<span class="step-title">' + esc(s.title) + "</span>" +
+        '<span class="step-check"><i class="fa-solid fa-check"></i></span>';
+      chip.addEventListener("click", () => {
+        location.hash = "#/practice/" + pid + "/" + s.id;
+      });
+      stepBar.appendChild(chip);
+    });
+    // 全部完成横幅
+    const allDone = projectDoneSteps(pid) === project.steps.length;
+    if (allDone) {
+      const banner = document.createElement("div");
+      banner.className = "project-done-banner";
+      banner.innerHTML = '<i class="fa-solid fa-trophy"></i> 本项目全部步骤已完成！可以进入下一个实战项目了 🎉';
+      stepBar.appendChild(banner);
+    }
+
+    // 步骤内容
+    const body = document.createElement("div");
+    body.className = "course-body glass";
+    body.innerHTML = step.html;
+    addCopyButtons(body);
+
+    // 步骤导航
+    const nav = document.createElement("nav");
+    nav.className = "course-nav";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "nav-btn glass";
+    prevBtn.innerHTML = '<i class="fa-solid fa-arrow-left"></i> 上一步';
+    prevBtn.disabled = stepIdx <= 0;
+
+    const stepDoneBtn = document.createElement("button");
+    stepDoneBtn.type = "button";
+    const key = stepKey(pid, step.id);
+    const isDone = !!done[key];
+    stepDoneBtn.className = "nav-btn done-btn" + (isDone ? " marked" : "");
+    stepDoneBtn.innerHTML = isDone
+      ? '<i class="fa-solid fa-circle-check"></i> 本步已完成（点击取消）'
+      : '<i class="fa-regular fa-circle"></i> 标记本步完成';
+
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "nav-btn glass";
+    nextBtn.innerHTML = '下一步 <i class="fa-solid fa-arrow-right"></i>';
+    nextBtn.disabled = stepIdx >= project.steps.length - 1;
+
+    nav.appendChild(prevBtn);
+    nav.appendChild(stepDoneBtn);
+    nav.appendChild(nextBtn);
+
+    view.appendChild(head);
+    view.appendChild(stepBar);
+    view.appendChild(body);
+
+    const quiz = buildQuiz(project.quiz);
+    if (quiz) view.appendChild(quiz);
+
+    view.appendChild(nav);
+
+    prevBtn.addEventListener("click", () => {
+      if (stepIdx > 0) location.hash = "#/practice/" + pid + "/" + project.steps[stepIdx - 1].id;
+    });
+    nextBtn.addEventListener("click", () => {
+      if (stepIdx < project.steps.length - 1) {
+        location.hash = "#/practice/" + pid + "/" + project.steps[stepIdx + 1].id;
+      }
+    });
+    stepDoneBtn.addEventListener("click", () => {
+      if (done[key]) delete done[key];
+      else done[key] = true;
+      saveDone();
+      updateProgress();
+      renderProject(pid, step.id);
+      updateSidebarActive("project", pid);
+    });
+
     if (activeQuery) highlightIn(body, activeQuery);
   }
 
@@ -395,9 +588,8 @@
   }
 
   /* ---------- 随堂小测 ---------- */
-  function buildQuiz(course) {
-    const qs = course.quiz || [];
-    if (!qs.length) return null;
+  function buildQuiz(qs) {
+    if (!Array.isArray(qs) || !qs.length) return null;
 
     const sec = document.createElement("section");
     sec.className = "quiz glass";
@@ -446,14 +638,27 @@
   /* ============================================================
      全文搜索
      ============================================================ */
-  const searchIndex = ALL.map((c) => ({
-    id: c.id,
-    no: c.no,
-    title: c.title,
-    stage: c.stage,
-    text: stripTags(c.html + " " + c.title),
-    lower: stripTags(c.html + " " + c.title).toLowerCase(),
-  }));
+  const searchIndex = [
+    ...COURSES.map((c) => ({
+      id: c.id,
+      no: c.no,
+      title: c.title,
+      text: stripTags(c.html + " " + c.title),
+      lower: stripTags(c.html + " " + c.title).toLowerCase(),
+    })),
+    ...PROJECTS.flatMap((p) =>
+      p.steps.map((s) => {
+        const text = stripTags(p.name + " · " + s.title + " " + s.html);
+        return {
+          id: "practice/" + p.id + "/" + s.id,
+          no: "🛠",
+          title: p.name + " · " + s.title,
+          text,
+          lower: text.toLowerCase(),
+        };
+      })
+    ),
+  ];
 
   function showResults() {
     const q = searchInput.value.trim().toLowerCase();
@@ -472,7 +677,6 @@
         id: item.id,
         no: item.no,
         title: item.title,
-        stage: item.stage,
         snippet: (start > 0 ? "…" : "") + item.text.slice(start, pos + q.length + 48).replace(/\s+/g, " ").trim(),
       });
       if (hits.length >= 8) break;
@@ -570,12 +774,22 @@
      进度
      ============================================================ */
   function updateProgress() {
-    const doneCount = Object.values(done).filter(Boolean).length;
-    if (fill) fill.style.width = TOTAL ? (doneCount / TOTAL) * 100 + "%" : "0%";
-    if (num) num.textContent = doneCount + "/" + TOTAL;
+    const doneCount = doneUnitsCount();
+    if (fill) fill.style.width = TOTAL_UNITS ? (doneCount / TOTAL_UNITS) * 100 + "%" : "0%";
+    if (num) num.textContent = doneCount + "/" + TOTAL_UNITS;
     if (bar) bar.setAttribute("aria-valuenow", String(doneCount));
+
     sidebar.querySelectorAll(".nav-lesson").forEach((btn) => {
-      btn.classList.toggle("done", !!done[btn.dataset.course]);
+      if (btn.dataset.project) {
+        const pid = btn.dataset.project;
+        const sd = projectDoneSteps(pid);
+        const total = (PROJECT_BY_ID.get(pid) || { steps: [] }).steps.length;
+        btn.classList.toggle("done", total > 0 && sd === total);
+        const stepsEl = btn.querySelector("[data-steps-for]");
+        if (stepsEl) stepsEl.textContent = sd + "/" + total;
+      } else if (btn.dataset.course) {
+        btn.classList.toggle("done", !!done[btn.dataset.course]);
+      }
     });
   }
 
@@ -584,7 +798,7 @@
      ============================================================ */
   window.addEventListener("hashchange", route);
 
-  // 首页/术语表里的「去学习」按钮（事件委托）
+  // 首页/术语表/步骤里的「去学习」按钮（事件委托）
   view.addEventListener("click", (e) => {
     const t = e.target.closest("[data-go]");
     if (!t) return;
@@ -598,13 +812,26 @@
     const t = e.target;
     if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
     const hash = location.hash || "";
-    if (hash.startsWith("#/") && hash !== "#/home" && hash !== "#/glossary") {
-      const id = hash.replace(/^#\//, "") || ALL[0].id;
-      const idx = ALL.findIndex((c) => c.id === id);
-      if (e.key === "ArrowRight" && idx < TOTAL - 1) {
-        location.hash = "#/" + ALL[idx + 1].id;
+    // 课程内 ← → 翻页
+    if (hash.startsWith("#/") && !hash.startsWith("#/practice/") && hash !== "#/home" && hash !== "#/glossary") {
+      const id = hash.replace(/^#\//, "") || COURSES[0].id;
+      const idx = COURSES.findIndex((c) => c.id === id);
+      if (e.key === "ArrowRight" && idx < COURSES.length - 1) {
+        location.hash = "#/" + COURSES[idx + 1].id;
       } else if (e.key === "ArrowLeft" && idx > 0) {
-        location.hash = "#/" + ALL[idx - 1].id;
+        location.hash = "#/" + COURSES[idx - 1].id;
+      }
+    }
+    // 项目内 ← → 切步骤
+    if (hash.startsWith("#/practice/")) {
+      const parts = hash.replace(/^#\/practice\//, "").split("/");
+      const p = PROJECT_BY_ID.get(parts[0]);
+      if (!p) return;
+      const idx = Math.max(0, p.steps.findIndex((s) => s.id === parts[1]));
+      if (e.key === "ArrowRight" && idx < p.steps.length - 1) {
+        location.hash = "#/practice/" + p.id + "/" + p.steps[idx + 1].id;
+      } else if (e.key === "ArrowLeft" && idx > 0) {
+        location.hash = "#/practice/" + p.id + "/" + p.steps[idx - 1].id;
       }
     }
   });
