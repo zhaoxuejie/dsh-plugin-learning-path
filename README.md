@@ -43,12 +43,15 @@ start index.html   # Windows；macOS 用 open index.html
 learning-path/
 ├── index.html        # 页面骨架（顶栏 + 目录侧栏 + 内容区）
 ├── styles.css        # 全部样式（渐变/毛玻璃/响应式/动画）
-├── app.js            # 交互逻辑（路由/搜索/测验/进度）
-├── content-s1.js     # 阶段一课程内容
-├── content-s2.js     # 阶段二课程内容
-├── content-s3.js     # 阶段三课程内容（error-logger 实战）
-├── content-s4.js     # 阶段四课程内容
-└── glossary.js       # 术语速查表（40 条）
+├── README.md
+└── js/
+    ├── app.js            # 应用逻辑（路由/搜索/测验/进度）
+    ├── glossary.js       # 术语速查表（40 条）
+    └── content/          # 课程内容（以后加课/改课只动这里）
+        ├── content-s1.js     # 阶段一课程内容
+        ├── content-s2.js     # 阶段二课程内容
+        ├── content-s3.js     # 阶段三课程内容（error-logger 实战）
+        └── content-s4.js     # 阶段四课程内容
 ```
 
 ## 说明
