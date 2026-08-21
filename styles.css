@@ -127,6 +127,17 @@ body {
   color: #fff;
   background: linear-gradient(135deg, #6b9dfc, #9a7bff);
   box-shadow: 0 6px 18px rgba(122, 125, 255, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+/* logo 图片盖在渐变底上；图片加载失败时底下的鲸鱼图标兜底 */
+.brand-icon img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 .brand-text {
   display: flex;
@@ -1259,6 +1270,19 @@ mark.hl {
   font-size: 13px;
   color: var(--ink-faint);
 }
+
+.footer-stats {
+  font-size: 13px;
+  color: var(--ink-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 6px 16px;
+}
+.footer-stats i { color: #9a7bff; }
 
 /* ============================================================
    响应式

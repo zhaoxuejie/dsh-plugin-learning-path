@@ -21,7 +21,10 @@
     <!-- ============ 顶部条 ============ -->
     <header class="topbar glass">
       <div class="brand">
-        <span class="brand-icon"><i class="fa-solid fa-whale"></i></span>
+        <span class="brand-icon">
+          <i class="fa-solid fa-whale"></i>
+          <img src="assets/logo.png" alt="DSH 学习教程 Logo" />
+        </span>
         <div class="brand-text">
           <strong>DeepSeek Harness 插件开发</strong>
           <small>14 节课程 + 实战项目库 · 概念 + 代码 + 练习</small>
@@ -61,6 +64,9 @@
         <button class="reset-btn glass" id="reset-progress" type="button"><i class="fa-solid fa-rotate-left"></i> 重置学习进度</button>
       </div>
       <p class="footer-note">DeepSeek Harness 插件开发 · 学习教程 · 纯 HTML / CSS / JS 制作</p>
+      <p class="footer-stats" id="footer-stats" hidden>
+        <i class="fa-solid fa-eye"></i> 本站访问 <span id="busuanzi_value_site_pv">…</span> 次
+      </p>
     </footer>
 
   </div>
@@ -72,9 +78,11 @@
   <script src="js/content/content-s2.js"></script>
   <script src="js/content/content-s3.js"></script>
   <script src="js/content/content-s4.js"></script>
-  <!-- 实战项目库（每插件一个文件，可不断扩充） -->
-  <script src="js/content/practice/error-logger.js"></script>
+  <!-- 实战项目库（projects.js 按数组顺序展示，新增项目见 practice/_TEMPLATE.md） -->
+  <script src="js/content/practice/projects.js"></script>
   <!-- 交互逻辑 -->
   <script src="js/app.js"></script>
+  <!-- 访问统计（第三方服务，加载失败时统计行自动隐藏） -->
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>

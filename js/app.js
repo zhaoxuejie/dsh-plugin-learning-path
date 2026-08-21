@@ -852,4 +852,15 @@
   buildNav();
   updateProgress();
   route();
+
+  // 访问统计（第三方服务：加载成功后显示，失败则保持隐藏）
+  const statsEl = document.getElementById("footer-stats");
+  if (statsEl) {
+    setTimeout(() => {
+      const v = document.getElementById("busuanzi_value_site_pv");
+      if (v && v.textContent.trim() !== "" && v.textContent.trim() !== "…") {
+        statsEl.hidden = false;
+      }
+    }, 4000);
+  }
 })();
