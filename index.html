@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepSeek Harness 插件开发 · 学习教程</title>
+  <meta name="description" content="零基础学会开发 DeepSeek Harness 插件：18 节完整教程，概念 + 代码 + 练习" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐳</text></svg>" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- 顶部氛围光斑 -->
+  <div class="glow glow-1" aria-hidden="true"></div>
+  <div class="glow glow-2" aria-hidden="true"></div>
+  <div class="glow glow-3" aria-hidden="true"></div>
+
+  <div class="page">
+
+    <!-- ============ 顶部条 ============ -->
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="brand-icon"><i class="fa-solid fa-whale"></i></span>
+        <div class="brand-text">
+          <strong>DeepSeek Harness 插件开发</strong>
+          <small>18 节完整教程 · 概念 + 代码 + 练习</small>
+        </div>
+      </div>
+      <div class="top-search" id="top-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" id="search-input" placeholder="搜索课程…（如 EADDRINUSE / Schema）" autocomplete="off" aria-label="搜索课程内容" />
+        <button type="button" class="search-clear" id="search-clear" aria-label="清除搜索" hidden><i class="fa-solid fa-xmark"></i></button>
+        <div class="search-results glass" id="search-results" hidden></div>
+      </div>
+      <div class="top-progress" title="学习进度">
+        <span class="top-progress-label"><i class="fa-solid fa-seedling"></i> 进度 <b id="progress-num">0/18</b></span>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="18" aria-valuenow="0" id="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ 主体：目录 + 内容 ============ -->
+    <div class="layout">
+
+      <!-- 课程目录（JS 生成） -->
+      <aside class="sidebar glass" id="sidebar" aria-label="课程目录"></aside>
+
+      <!-- 教程正文（JS 渲染） -->
+      <main class="content">
+        <div id="course-view" aria-live="polite"></div>
+      </main>
+
+    </div>
+
+    <!-- ============ 页脚 ============ -->
+    <footer class="footer">
+      <p class="footer-tip"><i class="fa-solid fa-lightbulb"></i> 学习建议：每节课先看「本节目标」，敲一遍代码示例，做完「小练习」再勾选学完。遇到报错对照排错表——报错是朋友。</p>
+      <div class="footer-actions">
+        <button class="reset-btn glass" id="reset-progress" type="button"><i class="fa-solid fa-rotate-left"></i> 重置学习进度</button>
+      </div>
+      <p class="footer-note">DeepSeek Harness 插件开发 · 学习教程 · 纯 HTML / CSS / JS 制作</p>
+    </footer>
+
+  </div>
+
+  <!-- 术语速查表 -->
+  <script src="glossary.js"></script>
+  <!-- 课程内容数据（阶段一 ~ 四） -->
+  <script src="content-s1.js"></script>
+  <script src="content-s2.js"></script>
+  <script src="content-s3.js"></script>
+  <script src="content-s4.js"></script>
+  <!-- 交互逻辑 -->
+  <script src="app.js"></script>
+</body>
+</html>
